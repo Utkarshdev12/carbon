@@ -142,14 +142,10 @@ app.get('/students/:studentId/library-membership', async (c) => {
 app.post('/students/:studentId/library-membership', async (c) => {
   try {
     const studentId = c.req.param("studentId");
-
-    // Accept string format for issueDate and expiryDate
     const { issueDate, expiryDate } = z.object({
       issueDate: z.string(),
       expiryDate: z.string(),
     }).parse(await c.req.json());
-
-    // Check if a membership already exists
     const existingMembership = await prisma.libraryMembership.findUnique({
       where: { studentId },
     });
@@ -158,11 +154,9 @@ app.post('/students/:studentId/library-membership', async (c) => {
       return c.json({ error: "Library membership already exists for this student" }, 400);
     }
 
-    // Convert to Date objects
     const parsedIssueDate = new Date(`${issueDate}T00:00:00.000Z`);
     const parsedExpiryDate = new Date(`${expiryDate}T00:00:00.000Z`);
 
-    // Create the membership
     const newMembership = await prisma.libraryMembership.create({
       data: {
         studentId,
@@ -177,27 +171,16 @@ app.post('/students/:studentId/library-membership', async (c) => {
   }
 });
 
-app.get('/students/:studentId/library-membership', async (c) => {
-  const { studentId } = c.req.param();
-  const membership = await prisma.libraryMembership.findUnique({
-    where: { studentId },
-  });
-  return c.json(membership);
-});
 app.patch('/students/:studentId/library-membership', async (c) => {
   try {
     const studentId = c.req.param('studentId')
     const data = await c.req.json()
-
-    // If expiryDate or issueDate exists, convert to Date
     if (data.issueDate) {
       data.issueDate = new Date(data.issueDate)
     }
     if (data.expiryDate) {
       data.expiryDate = new Date(data.expiryDate)
     }
-
-    // Update membership
     const updatedMembership = await prisma.libraryMembership.update({
       where: { studentId },
       data,
